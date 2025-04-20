@@ -1,0 +1,10 @@
+[package]
+name = "tphrase"
+version = "1.0.0"
+edition = "2015"
+description = "A translatable phrase generator."
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+regex = "1.11.1"
+fastrand = "2.3.0"

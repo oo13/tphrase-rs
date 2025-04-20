@@ -1,0 +1,28 @@
+name: unit_test
+on:
+  push:
+    paths:
+      - 'Cargo.toml'
+      - 'src/**.rs'
+      - 'test/**.rs'
+  pull_request:
+    paths:
+      - 'Cargo.toml'
+      - 'src/**.rs'
+      - 'test/**.rs'
+
+jobs:
+  test:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        BUILD_TARGET: [dev, release]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --profile ${{ matrix.BUILD_TARGET }}
+      - name: Test
+        run: cargo test --profile ${{ matrix.BUILD_TARGET }}
