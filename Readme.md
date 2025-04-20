@@ -5,7 +5,7 @@ This library is one of the translatable phrase generators. See the manual for de
 There are [Lua](https://github.com/oo13/translatable_phrase_generator) and [C++](https://github.com/oo13/tphrase) versions.
 
 ## Manual
-Use `cargo doc` or read [Lua version](https://github.com/oo13/translatable_phrase_generator/manual.md).
+Use `cargo doc` or read [Lua version](https://github.com/oo13/translatable_phrase_generator/blob/main/manual.md).
 
 ## What's the translatable phrase generator
 
