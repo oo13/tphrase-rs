@@ -1,11 +1,11 @@
-# TPhrase-rs, Translatable phrase generator for rust
+# TPhrase (Translatable phrase generator) for Rust
 
 This library is one of the translatable phrase generators. See the manual for details.
 
 There are [Lua](https://github.com/oo13/translatable_phrase_generator) and [C++](https://github.com/oo13/tphrase) versions.
 
 ## Manual
-Use `cargo doc` or read [Lua version](https://github.com/oo13/translatable_phrase_generator/blob/main/manual.md).
+Use `cargo doc`.
 
 ## What's the translatable phrase generator
 
@@ -155,11 +155,11 @@ In fact, this is the best way for the translation:
 but it's not practical if the combination increases.
 
 # License
-TPhrase-rs is licensed under MIT or Apache-2.0.
+TPhrase for Rust is licensed under MIT or Apache-2.0.
 
 Copyright © 2025 OOTA, Masato
 
-This file is part of TPhrase-rs.
+This file is part of TPhrase for Rust.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -169,7 +169,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 OR
 
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase-rs except in compliance with the License. You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
 
 http://www.apache.org/licenses/LICENSE-2.0
 

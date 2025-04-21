@@ -1,5 +1,5 @@
 //! # Introduction
-//! TPhrase-rs can generate various phrases with a syntax expressed by a text, which can be translated to generate a phrase in other languages. (The way to translate is such as gettext, but it's outside the scope of TPhrase-rs.)
+//! TPhrase for Rust can generate various phrases with a syntax expressed by a text, which can be translated to generate a phrase in other languages. (The way to translate is such as gettext, but it's outside the scope of TPhrase for Rust.)
 //!
 //! # Example
 //! ## A simple example
@@ -137,7 +137,7 @@
 //! ## Overview
 //! The phrase syntax consists of assignments. The order of the assignments doesn't affect the generated text. The recursive reference is not allowed. The multiple definition for a nonterminal occurs an error.
 //!
-//! It needs a definition of the nonterminal where is the start condition to generate the phrase. It's "main" by default, and rust coders can change it.
+//! It needs a definition of the nonterminal where is the start condition to generate the phrase. It's "main" by default, and Rust coders can change it.
 //!
 //! ## Spaces
 //! The spaces can consist of ' ' SPACE, '\\t' TAB, and the comment blocks "{* ... }".
@@ -244,7 +244,7 @@
 //!
 //! The separator succeeds the replacement, and the number parameter follows the separator. The number is the integer or "g" that means all ("0" is equivalent to "g"). You can omit the number and it means "1".
 //!
-//! The parameters "pattern", "replacement", "gsub_limit" are compatible with the regex in the regex::Regex by default. The rust coders can customize the gsub function.
+//! The parameters "pattern", "replacement", "gsub_limit" are compatible with the regex in the regex::Regex by default. The Rust coders can customize the gsub function.
 //!
 //! ## EBNF
 //!
@@ -280,11 +280,11 @@
 //! ```
 //!
 //! # License
-//! TPhrase-rs is licensed under MIT or Apache-2.0.
+//! TPhrase for Rust is licensed under MIT or Apache-2.0.
 //!
 //! Copyright © 2025 OOTA, Masato
 //!
-//! This file is part of TPhrase-rs.
+//! This file is part of TPhrase for Rust.
 //!
 //! Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 //!
@@ -294,7 +294,7 @@
 //!
 //! OR
 //!
-//! Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase-rs except in compliance with the License. You may obtain a copy of the License at
+//! Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
 //!
 //! http://www.apache.org/licenses/LICENSE-2.0
 //!
@@ -315,7 +315,7 @@ pub trait RandomGenerator {
     fn next(self: &mut Self) -> f64;
 }
 
-/// The substitutor implementing the gsub function in TPhrase.
+/// The substitutor implementing the gsub function in tphrase.
 /// You can replace the default into your version. `Generator` cannot `clone()` if your instance of `Substitutor` cannot `clone()`.
 pub trait Substitutor {
     /// Create a random number generator. Used in parsing.
