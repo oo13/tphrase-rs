@@ -300,15 +300,15 @@
 //!
 //! Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-mod fastrand_randomgenerator;
+mod fastrand_rng;
 mod generator;
 mod parser;
 mod regex_substitutor;
 mod utils;
 
 /// The random number generator used when selecting the text options in `Generator`.
-/// You can replace the default into your version. `Generator` cannot `clone()` if your instance of `RandomGenerator` cannot `clone()`.
-pub trait RandomGenerator {
+/// You can replace the default into your version. `Generator` cannot `clone()` if your instance of `RandomNumberGenerator` cannot `clone()`.
+pub trait RandomNumberGenerator {
     /// Create a random number generator. Used in `Generator::new()`.
     fn new() -> Self;
     /// Create a random number in the range of [0.0, 1.0). Used in `Generator::generate()`.
@@ -328,7 +328,7 @@ pub trait Substitutor {
     fn add(self: &mut Self, pattern: &str, repl: String, limit: usize) -> Result<(), String>;
 }
 
-pub use fastrand_randomgenerator::FastrandRNG;
+pub use fastrand_rng::FastrandRNG;
 pub use generator::Generator;
 pub use generator::SyntaxID;
 pub use parser::data::Syntax;
@@ -339,7 +339,7 @@ pub(crate) use utils::{select_and_generate_text, TextGenerator};
 pub use utils::{trunc_syntax, trunc_syntax_str};
 
 /// The default random number generator of `Generator`.
-pub type DefaultRandomGenerator = FastrandRNG;
+pub type DefaultRandomNumberGenerator = FastrandRNG;
 /// The default substitutor of `Generator`.
 pub type DefaultSubstitutor = RegexGsub;
 /// The type of the external context.

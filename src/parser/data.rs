@@ -20,7 +20,7 @@
 
 use crate::select_and_generate_text;
 use crate::ExtContext;
-use crate::RandomGenerator;
+use crate::RandomNumberGenerator;
 use crate::Substitutor;
 use crate::TextGenerator;
 
@@ -74,7 +74,7 @@ impl<S: Substitutor> Clone for Text<S> {
     }
 }
 impl<S: Substitutor> TextGenerator for Text<S> {
-    fn generate<R: RandomGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
+    fn generate<R: RandomNumberGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
         let mut r = "".to_string();
         for p in self.parts.iter() {
             match p {
@@ -273,7 +273,7 @@ impl<S: Substitutor> Clone for TextOptions<S> {
     }
 }
 impl<S: Substitutor> TextGenerator for TextOptions<S> {
-    fn generate<R: RandomGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
+    fn generate<R: RandomNumberGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
         select_and_generate_text(
             &self.texts,
             &self.weights,
@@ -397,7 +397,7 @@ impl<S: Substitutor> Clone for ProductionRule<S> {
     }
 }
 impl<S: Substitutor> TextGenerator for ProductionRule<S> {
-    fn generate<R: RandomGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
+    fn generate<R: RandomNumberGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
         self.gsubs
             .gsub(&self.options.generate(ext_context, rng))
             .to_string()
@@ -570,7 +570,7 @@ impl<S: Substitutor> Clone for Syntax<S> {
     }
 }
 impl<S: Substitutor> TextGenerator for Syntax<S> {
-    fn generate<R: RandomGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
+    fn generate<R: RandomNumberGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
         if self.is_generatable() {
             self.start_rule
                 .as_ref()

@@ -28,7 +28,7 @@ pub(crate) trait TextGenerator {
     ///
     /// # Return
     /// A text.
-    fn generate<R: crate::RandomGenerator>(
+    fn generate<R: crate::RandomNumberGenerator>(
         self: &Self,
         ext_context: &crate::ExtContext,
         rng: &mut R,
@@ -49,7 +49,7 @@ pub(crate) trait TextGenerator {
 ///
 /// # Return
 /// The generated string.
-pub(crate) fn select_and_generate_text<T: crate::TextGenerator, R: crate::RandomGenerator>(
+pub(crate) fn select_and_generate_text<T: crate::TextGenerator, R: crate::RandomNumberGenerator>(
     targets: &Vec<T>,
     weights: &Vec<f64>,
     equalized_chance: bool,

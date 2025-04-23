@@ -21,7 +21,7 @@
 use crate::parser::data::Syntax;
 use crate::select_and_generate_text;
 use crate::ExtContext;
-use crate::RandomGenerator;
+use crate::RandomNumberGenerator;
 use crate::Substitutor;
 
 /// The type of Syntax ID. Used when removing a syntax from a generator.
@@ -64,7 +64,7 @@ pub type SyntaxID = usize;
 /// ```
 #[derive(Clone)]
 pub struct Generator<
-    R: RandomGenerator = crate::DefaultRandomGenerator,
+    R: RandomNumberGenerator = crate::DefaultRandomNumberGenerator,
     S: Substitutor = crate::DefaultSubstitutor,
 > {
     /// The syntaxes in the instance.
@@ -75,10 +75,10 @@ pub struct Generator<
     equalized_chance: bool,
     /// The syntax ID.
     ids: Vec<SyntaxID>,
-    /// Random generator.
+    /// Random number generator.
     rng: R,
 }
-impl<R: RandomGenerator, S: Substitutor> std::str::FromStr for Generator<R, S> {
+impl<R: RandomNumberGenerator, S: Substitutor> std::str::FromStr for Generator<R, S> {
     type Err = Vec<String>;
     /// `from_str(s)` is equivalent to `new()` and `add(parse_str(s)?)`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -88,7 +88,7 @@ impl<R: RandomGenerator, S: Substitutor> std::str::FromStr for Generator<R, S> {
         return Ok(ph);
     }
 }
-impl<R: RandomGenerator, S: Substitutor> Generator<R, S> {
+impl<R: RandomNumberGenerator, S: Substitutor> Generator<R, S> {
     /// Create an empty generator.
     pub fn new() -> Self {
         Self {

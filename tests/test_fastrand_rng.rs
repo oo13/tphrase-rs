@@ -22,7 +22,7 @@ extern crate tphrase;
 use tphrase::*;
 
 #[test]
-fn test_fast_random_generator() {
+fn test_fastrand_rng() {
     let mut rng = FastrandRNG::new();
     for _ in 1..=10000 {
         let a = rng.next();

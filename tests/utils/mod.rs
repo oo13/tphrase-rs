@@ -1,7 +1,7 @@
 use tphrase::*;
 
 pub struct ZeroNG {}
-impl RandomGenerator for ZeroNG {
+impl RandomNumberGenerator for ZeroNG {
     fn new() -> Self {
         Self {}
     }
@@ -11,7 +11,7 @@ impl RandomGenerator for ZeroNG {
 }
 
 pub struct Point9NG {}
-impl RandomGenerator for Point9NG {
+impl RandomNumberGenerator for Point9NG {
     fn new() -> Self {
         Self {}
     }
@@ -30,7 +30,7 @@ pub struct LinearNG<P: LinearNGParam> {
     n: P,
     i: f64,
 }
-impl<P: LinearNGParam> RandomGenerator for LinearNG<P> {
+impl<P: LinearNGParam> RandomNumberGenerator for LinearNG<P> {
     fn new() -> Self {
         Self {
             n: P::new(),

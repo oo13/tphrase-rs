@@ -18,15 +18,15 @@
 //!
 //! Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-use crate::RandomGenerator;
+use crate::RandomNumberGenerator;
 
-/// A type of `RandomGenerator` using `fastrand::Rng`. The default random number generator of `Generator`.
+/// A type of `RandomNumberGenerator` using `fastrand::Rng`. The default random number generator of `Generator`.
 #[derive(Clone)]
 pub struct FastrandRNG {
     rng: fastrand::Rng,
 }
 
-impl RandomGenerator for FastrandRNG {
+impl RandomNumberGenerator for FastrandRNG {
     fn new() -> Self {
         Self {
             rng: fastrand::Rng::new(),
