@@ -1,22 +1,22 @@
 //! Test for parsing
-//!
-//! Copyright © 2025 OOTA, Masato
-//!
-//! This file is part of TPhrase for Rust.
-//!
-//! Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-//!
-//! The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-//!
-//! THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//!
-//! OR
-//!
-//! Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
-//!
-//! http://www.apache.org/licenses/LICENSE-2.0
-//!
-//! Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+//
+// Copyright © 2025 OOTA, Masato
+//
+// This file is part of TPhrase for Rust.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// OR
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 extern crate tphrase;
 use tphrase::*;
@@ -180,9 +180,9 @@ fn test_parse_text_quoted_with_number_decimal_only() {
     "#
     .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("A number is expected. (\".\" is not a number.)"));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("A number is expected. (\".\" is not a number.)"));
 }
 
 #[test]
@@ -342,9 +342,9 @@ fn test_parse_gsub_with_character_except_g() {
         main = 1 | 2 | 3 ~ ~A~B~h"#
         .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("The end of the text or \"\\n\" is expected."));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("The end of the text or \"\\n\" is expected."));
 }
 
 #[test]
@@ -353,9 +353,9 @@ fn test_parse_gsub_with_real_number() {
         main = 1 | 2 | 3 ~ ~A~B~1.1"#
         .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("The end of the text or \"\\n\" is expected."));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("The end of the text or \"\\n\" is expected."));
 }
 
 #[test]
@@ -393,9 +393,21 @@ fn test_parse_gsub_with_too_big_number() {
             /I//99999999999999999999999999999"#
         .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("Error in gsub limit. (It may be too big number.)"));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("Error in gsub limit. (It may be too big number.)"));
+}
+
+#[test]
+fn test_parse_gsub_with_error_and_report() {
+    let ph: Result<Generator, _> = r#"
+        main = 1 | 2 | 3 ~ /[1/2/
+    "#
+    .parse();
+    assert!(ph.is_err());
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("Gsub error:"));
 }
 
 #[test]
@@ -413,9 +425,9 @@ fn test_parse_error_in_the_last_line() {
         main = 1 | 2 | 3 ~ /A//+"#
         .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("The end of the text or \"\\n\" is expected."));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("The end of the text or \"\\n\" is expected."));
 }
 
 #[test]
@@ -428,9 +440,9 @@ fn test_parse_recursive_expansion_error() {
     "#
     .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("Recursive expansion of \"B\" is detected."));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("Recursive expansion of \"B\" is detected."));
 }
 
 #[test]
@@ -442,9 +454,9 @@ fn test_parse_no_local_nonterminal_error() {
     "#
     .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("The local nonterminal \"_B\" is not found."));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("The local nonterminal \"_B\" is not found."));
 }
 
 #[test]
@@ -489,10 +501,9 @@ fn test_parse_redefined_nonterminal_error() {
     "#
     .parse();
     assert!(ph.is_err());
-    if let Err(err_msg) = ph {
-        assert_eq!(err_msg.len(), 1);
-        assert!(err_msg[0].contains("The nonterminal \"A\" is already defined."))
-    }
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("The nonterminal \"A\" is already defined."))
 }
 
 #[test]
@@ -502,9 +513,9 @@ fn test_parse_unclosed_comment_1() {
     "#
     .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("The end of the comment is expected."));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("The end of the comment is expected."));
 }
 
 #[test]
@@ -515,7 +526,7 @@ fn test_parse_unclosed_comment_2() {
     "#
     .parse();
     assert!(ph.is_err());
-    let err_msg = ph.err().unwrap();
-    assert_eq!(err_msg.len(), 1);
-    assert!(err_msg[0].contains("The end of the comment is expected."));
+    let err = ph.err().unwrap();
+    assert_eq!(err.error_messages().len(), 1);
+    assert!(err.error_messages()[0].contains("The end of the comment is expected."));
 }

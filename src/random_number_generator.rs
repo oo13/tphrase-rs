@@ -1,4 +1,4 @@
-//! Test for RegexGsub
+//! RandomNumberGenerator
 //
 // Copyright © 2025 OOTA, Masato
 //
@@ -18,39 +18,17 @@
 //
 // Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
-extern crate tphrase;
-use tphrase::*;
-
-use std::borrow::Cow;
-
-#[test]
-fn test_simple_replace() {
-    let mut gsub = RegexGsub::new();
-    assert!(matches!(gsub.add("abc", "def".to_string(), 0), Ok(_)));
-    assert_eq!(gsub.gsub("abcdef"), "defdef");
-}
-
-#[test]
-fn test_multiple_rules() {
-    let mut gsub = RegexGsub::new();
-    assert!(matches!(gsub.add("abc", "def".to_string(), 0), Ok(_)));
-    assert_eq!(gsub.gsub("abcdef"), "defdef");
-    assert!(matches!(gsub.add("e", "E".to_string(), 1), Ok(_)));
-    assert_eq!(gsub.gsub("abcdef"), "dEfdef");
-}
-
-#[test]
-fn test_regex_compile_error() {
-    let mut gsub = RegexGsub::new();
-    assert!(matches!(gsub.add("[[[]", "Z".to_string(), 0), Err(_)));
-}
-
-#[test]
-fn test_cow() {
-    let mut gsub = RegexGsub::new();
-    assert!(matches!(gsub.add("abc", "def".to_string(), 0), Ok(_)));
-    assert!(matches!(gsub.gsub("abcdef"), Cow::Owned(_)));
-
-    /* Don't copy if not match. */
-    assert!(matches!(gsub.gsub("zbcdef"), Cow::Borrowed(_)));
+/// The random number generator used when selecting the text options in [`Generator`].
+/// You can replace the default into your version. [`Generator`] doesn't have [`Clone`] and [`Debug`] traits if your instance of [`RandomNumberGenerator`] doesn't have [`Clone`] and [`Debug`] traits.
+///
+/// [`Generator`]: struct.Generator.html
+pub trait RandomNumberGenerator {
+    /// Create a random number generator. Used in [`Generator::new()`].
+    ///
+    /// [`Generator::new()`]: struct.Generator.html#method.new
+    fn new() -> Self;
+    /// Create a random number in the range of [0.0, 1.0). Used in [`Generator::generate()`].
+    ///
+    /// [`Generator::generate()`]: struct.Generator.html#method.generate
+    fn next(self: &mut Self) -> f64;
 }

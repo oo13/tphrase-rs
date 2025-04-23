@@ -1,4 +1,4 @@
-//! Test for RegexGsub
+//! Test for Some Error Structs
 //
 // Copyright © 2025 OOTA, Masato
 //
@@ -21,36 +21,32 @@
 extern crate tphrase;
 use tphrase::*;
 
-use std::borrow::Cow;
-
 #[test]
-fn test_simple_replace() {
-    let mut gsub = RegexGsub::new();
-    assert!(matches!(gsub.add("abc", "def".to_string(), 0), Ok(_)));
-    assert_eq!(gsub.gsub("abcdef"), "defdef");
+fn test_substitution_add_error() {
+    let err = SubstitutorAddError::new("Message.".to_string());
+
+    // Debug
+    assert_eq!(
+        format!("{:?}", err),
+        "SubstitutorAddError { error_message: \"Message.\" }"
+    );
+
+    // Display
+    assert_eq!(
+        format!("{}", err),
+        "substitutor error in add(): \"Message.\""
+    );
+    assert_eq!(err.to_string(), "substitutor error in add(): \"Message.\"");
 }
 
 #[test]
-fn test_multiple_rules() {
-    let mut gsub = RegexGsub::new();
-    assert!(matches!(gsub.add("abc", "def".to_string(), 0), Ok(_)));
-    assert_eq!(gsub.gsub("abcdef"), "defdef");
-    assert!(matches!(gsub.add("e", "E".to_string(), 1), Ok(_)));
-    assert_eq!(gsub.gsub("abcdef"), "dEfdef");
-}
+fn test_syntax_remove_error() {
+    let err = SyntaxRemoveError::new();
 
-#[test]
-fn test_regex_compile_error() {
-    let mut gsub = RegexGsub::new();
-    assert!(matches!(gsub.add("[[[]", "Z".to_string(), 0), Err(_)));
-}
+    // Debug
+    assert_eq!(format!("{:?}", err), "SyntaxRemoveError");
 
-#[test]
-fn test_cow() {
-    let mut gsub = RegexGsub::new();
-    assert!(matches!(gsub.add("abc", "def".to_string(), 0), Ok(_)));
-    assert!(matches!(gsub.gsub("abcdef"), Cow::Owned(_)));
-
-    /* Don't copy if not match. */
-    assert!(matches!(gsub.gsub("zbcdef"), Cow::Borrowed(_)));
+    // Display
+    assert_eq!(format!("{}", err), "error in remove()");
+    assert_eq!(err.to_string(), "error in remove()");
 }

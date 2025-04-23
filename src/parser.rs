@@ -1,27 +1,31 @@
 //! Parse functions
-//!
-//! Copyright © 2025 OOTA, Masato
-//!
-//! This file is part of TPhrase for Rust.
-//!
-//! Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-//!
-//! The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-//!
-//! THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//!
-//! OR
-//!
-//! Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
-//!
-//! http://www.apache.org/licenses/LICENSE-2.0
-//!
-//! Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+//
+// Copyright © 2025 OOTA, Masato
+//
+// This file is part of TPhrase for Rust.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// OR
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 pub(crate) mod data;
 
-/// The class to feed characters to `parser()`.
+use crate::CompileError;
+
+/// The class to feed characters to [`parse()`].
 /// It's able to look ahead one codepoint.
+///
+/// [`parse()`]: ../fn.parse.html
 struct CharFeeder<'a, I: Iterator<Item = char>> {
     /// Wrapped iterator.
     it: &'a mut I,
@@ -66,7 +70,9 @@ impl<'a, I: Iterator<Item = char>> CharFeeder<'a, I> {
     /// The codepoint at the current position.
     ///
     /// # Return
-    /// The codepoint at the current position. '\0' if `is_end()` is true.
+    /// The codepoint at the current position. '\0' if [`is_end()`] is true.
+    ///
+    /// [`is_end()`]: #method.is_end
     fn c(self: &Self) -> char {
         self.c[0]
     }
@@ -126,10 +132,10 @@ use crate::Substitutor;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-/// String in `Err` is the human readable error message.
+/// String in [`Err`] is the human readable error message. It's not an [`std::error::Error`] because `ParseResult` is private.
 type ParseResult<T> = Result<T, String>;
 
-/// Create the instance of `Err` for the parse error.
+/// Create the instance of [`Err`] for the parse error.
 fn parse_error<T, I: Iterator<Item = char>>(it: &CharFeeder<I>, err_msg: &str) -> ParseResult<T> {
     Err(format!(
         "Line#{}, Column#{}: {}",
@@ -139,38 +145,50 @@ fn parse_error<T, I: Iterator<Item = char>>(it: &CharFeeder<I>, err_msg: &str) -
     ))
 }
 
-/// Parse a phrase syntax to create the instance of the `Syntax`.
+/// Parse a phrase syntax to create the instance of the [`Syntax`].
 ///
 /// # Parameter
 /// - `p`: The iterator of the source text.
 ///
 /// # Return
-/// The human readable error message when `Err`.
+/// The human readable error message when [`Err`].
 ///
 /// # Eample
 /// ```rust
-/// let syntax = tphrase::parse(&mut r#"main = Hello, World!"#.chars()).unwrap();
+/// # use std::error::Error;
+/// # fn main() -> Result<(), tphrase::CompileError> {
+/// let syntax = tphrase::parse(&mut r#"main = Hello, World!"#.chars())?;
 /// let mut ph: tphrase::Generator = tphrase::Generator::new();
 /// let _ = ph.add(syntax);
 /// assert_eq!(ph.generate(), "Hello, World!");
+/// # Ok(())
+/// # }
 /// ```
 ///
-/// `Err` in the result holds some human readable error messages.
+/// [`Err`] in the result holds some human readable error messages.
 /// ```rust
 /// let syntax_result: Result<tphrase::Syntax, _> = tphrase::parse(&mut r#"
 ///     main = "Hello, " {WORLD}
 ///     WORLD
 ///       = world
 /// "#.chars());
-/// let err_msgs = syntax_result.err().unwrap();
-/// assert_eq!(err_msgs.len(), 3);
-/// assert_eq!(err_msgs[0], "Line#2, Column#22: The end of the text or \"\\n\" is expected.");
-/// assert_eq!(err_msgs[1], "Line#3, Column#10: \"=\" or \":=\" is expected.");
-/// assert_eq!(err_msgs[2], "Line#4, Column#7: A nonterminal \"[A-Za-z0-9_.]+\" is expected.");
+/// match syntax_result {
+///     Ok(_) => assert!(syntax_result.is_err()),
+///     Err(err) => {
+///         assert_eq!(err.error_messages().len(), 3);
+///         assert_eq!(
+///             err.to_string(),
+///             format!("{}{}{}{}",
+///                 "compile error:\n",
+///                 "Line#2, Column#22: The end of the text or \"\\n\" is expected.\n",
+///                 "Line#3, Column#10: \"=\" or \":=\" is expected.\n",
+///                 "Line#4, Column#7: A nonterminal \"[A-Za-z0-9_.]+\" is expected."));
+///     },
+/// }
 /// ```
 pub fn parse<S: Substitutor, I: Iterator<Item = char>>(
     p: &mut I,
-) -> Result<Syntax<S>, Vec<String>> {
+) -> Result<Syntax<S>, CompileError> {
     let mut syntax = Syntax::new();
     let mut err_msg = Vec::new();
     let mut it = CharFeeder::new(p);
@@ -199,40 +217,54 @@ pub fn parse<S: Substitutor, I: Iterator<Item = char>>(
     if err_msg.is_empty() {
         return Ok(syntax);
     } else {
-        return Err(err_msg);
+        let mut compile_error = CompileError::new();
+        compile_error.add_error_messages(err_msg);
+        return Err(compile_error);
     }
 }
 
-/// Parse a phrase syntax to create the instance of the `Syntax`.
+/// Parse a phrase syntax to create the instance of the [`Syntax`].
 ///
 /// # Parameter
 /// - `s`: The source text.
 ///
 /// # Return
-/// The human readable error message when `Err`.
+/// The human readable error message when [`Err`].
 ///
 /// # Eample
 /// ```rust
-/// let syntax = tphrase::parse_str(r#"main = Hello, World!"#).unwrap();
+/// # use std::error::Error;
+/// # fn main() -> Result<(), tphrase::CompileError> {
+/// let syntax = tphrase::parse_str(r#"main = Hello, World!"#)?;
 /// let mut ph: tphrase::Generator = tphrase::Generator::new();
 /// let _ = ph.add(syntax);
 /// assert_eq!(ph.generate(), "Hello, World!");
+/// # Ok(())
+/// # }
 /// ```
 ///
-/// `Err` in the result holds some human readable error messages.
+/// [`Err`] in the result holds some human readable error messages.
 /// ```rust
 /// let syntax_result: Result<tphrase::Syntax, _> = tphrase::parse_str(r#"
 ///     main = "Hello, " {WORLD}
 ///     WORLD
 ///       = world
 /// "#);
-/// let err_msgs = syntax_result.err().unwrap();
-/// assert_eq!(err_msgs.len(), 3);
-/// assert_eq!(err_msgs[0], "Line#2, Column#22: The end of the text or \"\\n\" is expected.");
-/// assert_eq!(err_msgs[1], "Line#3, Column#10: \"=\" or \":=\" is expected.");
-/// assert_eq!(err_msgs[2], "Line#4, Column#7: A nonterminal \"[A-Za-z0-9_.]+\" is expected.");
+/// match syntax_result {
+///     Ok(_) => assert!(syntax_result.is_err()),
+///     Err(err) => {
+///         assert_eq!(err.error_messages().len(), 3);
+///         assert_eq!(
+///             err.to_string(),
+///             format!("{}{}{}{}",
+///                 "compile error:\n",
+///                 "Line#2, Column#22: The end of the text or \"\\n\" is expected.\n",
+///                 "Line#3, Column#10: \"=\" or \":=\" is expected.\n",
+///                 "Line#4, Column#7: A nonterminal \"[A-Za-z0-9_.]+\" is expected."));
+///     },
+/// }
 /// ```
-pub fn parse_str<S: Substitutor>(s: &str) -> Result<Syntax<S>, Vec<String>> {
+pub fn parse_str<S: Substitutor>(s: &str) -> Result<Syntax<S>, CompileError> {
     parse(&mut s.chars())
 }
 
@@ -791,9 +823,9 @@ fn parse_gsubs<S: Substitutor, I: Iterator<Item = char>>(it: &mut CharFeeder<I>)
         let pattern = parse_pattern(it, sep, false)?;
         let repl = parse_pattern(it, sep, true)?;
         let limit = parse_gsub_limit(it)?;
-        if let Err(msg) = gsubs.add(&pattern, repl, limit) {
+        if let Err(subst_err) = gsubs.add(&pattern, repl, limit) {
             let mut err_msg = "Gsub error: ".to_string();
-            err_msg += &msg;
+            err_msg += &subst_err.error_message();
             return parse_error(it, &err_msg);
         }
         skip_space(it)?;

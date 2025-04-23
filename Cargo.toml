@@ -4,6 +4,8 @@ version = "1.0.0"
 edition = "2015"
 description = "A translatable phrase generator."
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/oo13/tphrase-rs.git"
+categories = ["internationalization", "text-processing"]
 
 [dependencies]
 regex = "1.11.1"

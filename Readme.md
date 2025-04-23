@@ -33,7 +33,7 @@ As far as I had experienced about translating the phrase node in my translatable
 ## Example of Phrase Syntax
 ### Avoid combination explosion
 Japanese translation of Arach ship's name in Endless Sky (excerpt):
-```
+```tphrase
 ARACH_START= マg | グラb | ブロg | ブロp | ブラb | モg | モb {* | ... }
 ARACH_MIDDLE = aラg | aバg | グラg | グロp | aロp | プルーt {* | ... }
 ARACH_NEXT = ・{ARACH_START}
@@ -55,7 +55,7 @@ main = {ARACH_START}{ARACH_MIDDLE}{=
 Gsubs handle the characters that must be replaced by the combination with preceding and succeeding words.
 
 ### Inflection
-```
+```tphrase
 ARTICLES = a | the | that | its
 NOUNS = @apple | banana | @orange | @avocado | watermelon
 main = {ARTICLES} {NOUNS} ~
@@ -66,22 +66,23 @@ main = {ARTICLES} {NOUNS} ~
 ### Translate a single word into some different words
 An example that an English word cannot translates into the same word in Japanese.
 English version:
-```
+```tphrase
 ECONOMICAL_SITUATION = poor | rich
 main = You are {ECONOMICAL_SITUATION}. |
        You purchased a {ECONOMICAL_SITUATION} ship.
 ```
 
 Japanese version:
-```
+```tphrase
 ECONOMICAL_SITUATION = 貧乏 | 裕福
 main = あなたは{ECONOMICAL_SITUATION}です。 |
        あなたは{ECONOMICAL_SITUATION}な船を購入しました。 ~
        /貧乏な船/粗末な船/ ~
        /裕福な船/豪華な船/
 ```
-If you use a simple substitution instead of a translatable phrase generator, it cannot translate. For example: (gettext() is a translating function.)
+If you use a simple substitution instead of a translatable phrase generator, it cannot translate. For example: (`gettext()` is a translating function.)
 ```rust
+# fn gettext(s: &str) -> &str { s }
     let mut rng = fastrand::Rng::new();
     let word = if rng.f64() > 0.5 {
         gettext("poor")
@@ -100,6 +101,9 @@ The translator can create only two independent messages at most but Japanese tra
 ### Alternative to printf
 This phrase generator can play a role of printf by "external context":
 ```rust
+# fn gettext(s: &str) -> &str { s }
+# let money = 1000;
+# let cost = 1000000;
     let s1 = if money < 10000 {
         gettext("poor")
     } else {
@@ -107,7 +111,7 @@ This phrase generator can play a role of printf by "external context":
     };
     let mut ph1: tphrase::Generator = gettext("main = You are {ECONOMICAL_SITUATION}.").parse().unwrap();
     let r1 = ph1.generate_with_context(&tphrase::ExtContext::from([
-        ("ECONOMICAL_SITUATION".to_string(), s1),
+        ("ECONOMICAL_SITUATION".to_string(), s1.to_string(), ),
     ]));
     // ...snip...
     let s2 = if cost < 10000 {
@@ -117,11 +121,14 @@ This phrase generator can play a role of printf by "external context":
     };
     let mut ph2: tphrase::Generator = gettext("main = You purchased a {ECONOMICAL_SITUATION} ship.").parse().unwrap();
     let r2 = ph2.generate_with_context(&tphrase::ExtContext::from([
-        ("ECONOMICAL_SITUATION".to_string(), s2),
+        ("ECONOMICAL_SITUATION".to_string(), s2.to_string(), ),
     ]));
 ```
 If you use a format function, it might not be translatable. For example, this is not a translatable in Japanese by gettext:
 ```rust
+# fn gettext(s: &str) -> &str { s }
+# let money = 1000;
+# let cost = 1000000;
     let s1 = if money < 10000 {
         gettext("poor")
     } else {
@@ -140,6 +147,9 @@ because gettext merges same words into a single entry, so "poor" can have a sing
 
 In fact, this is the best way for the translation:
 ```rust
+# fn gettext(s: &str) -> &str { s }
+# let money = 1000;
+# let cost = 1000000;
     let r1 = if money < 10000 {
         gettext("You are poor.")
     } else {
@@ -155,7 +165,14 @@ In fact, this is the best way for the translation:
 but it's not practical if the combination increases.
 
 # License
-TPhrase for Rust is licensed under MIT or Apache-2.0.
+Licensed under either of
+
+ * Apache License, Version 2.0
+   ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license
+   ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
 
 Copyright © 2025 OOTA, Masato
 
@@ -174,3 +191,6 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+# Contribution
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.

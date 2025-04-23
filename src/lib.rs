@@ -3,15 +3,23 @@
 //!
 //! # Example
 //! ## A simple example
+//! `gettext()` is a translating function.
 //!
 //! ```rust
-//! let mut ph: tphrase::Generator = r#"
+//! # use std::error::Error;
+//! # fn gettext(s: &str) -> &str { s }
+//! # fn main() -> Result<(), tphrase::CompileError> {
+//! let mut ph: tphrase::Generator = gettext(r#"
 //!     main = {HELLO}, {WORLD}!
 //!     HELLO = Hi | Greetings | Hello | Good morning
 //!     WORLD = world | guys | folks
-//! "#.parse().unwrap();
+//! "#).parse()?;
 //! let s = ph.generate();
 //!
+//! assert_eq!(ph.number_of_syntax(), 1);
+//! assert_eq!(ph.combination_number(), 12);
+//! assert_eq!(ph.weight(), 12.0);
+//! // Assertion failure if it's translated.
 //! assert!(s == "Hi, world!" ||
 //!         s == "Hi, guys!" ||
 //!         s == "Hi, folks!" ||
@@ -24,25 +32,31 @@
 //!         s == "Good morning, world!" ||
 //!         s == "Good morning, guys!" ||
 //!         s == "Good morning, folks!");
-//! assert_eq!(ph.number_of_syntax(), 1);
-//! assert_eq!(ph.combination_number(), 12);
-//! assert_eq!(ph.weight(), 12.0);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! ## Text Substitution, and Generation with an External Context
 //!
 //! ```rust
-//! let mut ph: tphrase::Generator = r#"
+//! # use std::error::Error;
+//! # fn gettext(s: &str) -> &str { s }
+//! # fn main() -> Result<(), tphrase::CompileError> {
+//! let mut ph: tphrase::Generator = gettext(r#"
 //!     HELLO = Hi | Greetings | Hello | Good morning
 //!     WORLD = world | "{GENDER}-siblings" 2 | folks ~
 //!           /female-siblings/sisters/ ~
 //!           /male-siblings/brothers/
 //!     main = {HELLO}, {WORLD}!
-//! "#.parse().unwrap();
+//! "#).parse()?;
 //! let s = ph.generate_with_context(&tphrase::ExtContext::from([
 //!     ("GENDER".to_string(), "female".to_string()),
 //! ]));
 //!
+//! assert_eq!(ph.number_of_syntax(), 1);
+//! assert_eq!(ph.combination_number(), 12);
+//! assert_eq!(ph.weight(), 16.0);
+//! // Assertion failure if it's translated.
 //! assert!(s == "Hi, world!" ||
 //!         s == "Hi, sisters!" ||
 //!         s == "Hi, folks!" ||
@@ -55,9 +69,8 @@
 //!         s == "Good morning, world!" ||
 //!         s == "Good morning, sisters!" ||
 //!         s == "Good morning, folks!");
-//! assert_eq!(ph.number_of_syntax(), 1);
-//! assert_eq!(ph.combination_number(), 12);
-//! assert_eq!(ph.weight(), 16.0);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! "{GENDER}-siblings" is followed by 2 so the weight of "{GENDER}-siblings" is 2. The quotation is necessary if it's followed by a weight.
@@ -67,51 +80,64 @@
 //! ## Multiple Phrase Syntaxes
 //!
 //! ```rust
-//! let syntax1: tphrase::Syntax = r#"
+//! # use std::error::Error;
+//! # fn gettext(s: &str) -> &str { s }
+//! # fn main() -> Result<(), tphrase::CompileError> {
+//! let syntax1: tphrase::Syntax = gettext(r#"
 //!     main = I hope this modules is useful!
-//! "#.parse().unwrap();
-//! let syntax2: tphrase::Syntax = r#"
+//! "#).parse()?;
+//! let syntax2: tphrase::Syntax = gettext(r#"
 //!     main = This module is a libre software. You can help out by contributing {BUGS}.
 //!     BUGS= bug reports | typo fixes | "revisions of the documents" 2
-//! "#.parse().unwrap();
+//! "#).parse()?;
 //!
 //! let mut ph: tphrase::Generator = tphrase::Generator::new();
-//! let _ = ph.add(syntax1).unwrap();
-//! let _ = ph.add(syntax2).unwrap();
+//! let _ = ph.add(syntax1)?;
+//! let _ = ph.add(syntax2)?;
 //! let s = ph.generate();
 //!
+//! assert_eq!(ph.number_of_syntax(), 2);
+//! assert_eq!(ph.combination_number(), 4);
+//! assert_eq!(ph.weight(), 5.0);
+//! // Assertion failure if it's translated.
 //! assert!(s == "I hope this modules is useful!" ||
 //!         s == "This module is a libre software. You can help out by contributing bug reports." ||
 //!         s == "This module is a libre software. You can help out by contributing typo fixes." ||
 //!         s == "This module is a libre software. You can help out by contributing revisions of the documents.");
-//! assert_eq!(ph.number_of_syntax(), 2);
-//! assert_eq!(ph.combination_number(), 4);
-//! assert_eq!(ph.weight(), 5.0);
+//! # Ok(())
+//! # }
 //! ```
 //! A phrase generator can have completely independent phrase syntaxes.
 //!
-//! The chance to generate "I hope..." is 20%, "This module..." is 80% because latter has 4 weights. It equalizes the chance to select each phrase syntax if `ph.equalize_chance()` is called.
+//! The chance to generate "I hope..." is 20%, "This module..." is 80% because latter has 4 weights. It equalizes the chance to select each phrase syntax if [`Generator::equalize_chance()`] is called with `true`.
 //!
 //! ## Separate Syntaxes to Parse
 //!
 //! ```rust
-//! let greet_syntax: tphrase::Syntax = r#"
+//! # use std::error::Error;
+//! # fn gettext(s: &str) -> &str { s }
+//! # fn main() -> Result<(), tphrase::CompileError> {
+//! let greet_syntax: tphrase::Syntax = gettext(r#"
 //!     HELLO = Hi | Greetings | Hello | Good morning
-//! "#.parse().unwrap();
-//! let world_syntax: tphrase::Syntax = r#"
+//! "#).parse()?;
+//! let world_syntax: tphrase::Syntax = gettext(r#"
 //!     WORLD = world | guys | folks
-//! "#.parse().unwrap();
-//! let mut main_syntax: tphrase::Syntax = r#"
+//! "#).parse()?;
+//! let mut main_syntax: tphrase::Syntax = gettext(r#"
 //!     main = {HELLO}, {WORLD}!
-//! "#.parse().unwrap();
+//! "#).parse()?;
 //!
-//! main_syntax.add(greet_syntax).unwrap();
-//! main_syntax.add(world_syntax).unwrap();
+//! main_syntax.add(greet_syntax)?;
+//! main_syntax.add(world_syntax)?;
 //!
 //! let mut ph: tphrase::Generator = tphrase::Generator::new();
-//! let _ = ph.add(main_syntax).unwrap();
+//! let _ = ph.add(main_syntax)?;
 //! let s = ph.generate();
 //!
+//! assert_eq!(ph.number_of_syntax(), 1);
+//! assert_eq!(ph.combination_number(), 12);
+//! assert_eq!(ph.weight(), 12.0);
+//! // Assertion failure if it's translated.
 //! assert!(s == "Hi, world!" ||
 //!         s == "Hi, guys!" ||
 //!         s == "Hi, folks!" ||
@@ -124,9 +150,8 @@
 //!         s == "Good morning, world!" ||
 //!         s == "Good morning, guys!" ||
 //!         s == "Good morning, folks!");
-//! assert_eq!(ph.number_of_syntax(), 1);
-//! assert_eq!(ph.combination_number(), 12);
-//! assert_eq!(ph.weight(), 12.0);
+//! # Ok(())
+//! # }
 //! ```
 //!
 //! Parsing separating syntaxes may make easy to understand the parse error message and edit the translation file. If the syntax has more than a few decades lines, you should consider dividing into the multiple syntaxes (In above example, it's too short).
@@ -140,7 +165,7 @@
 //! It needs a definition of the nonterminal where is the start condition to generate the phrase. It's "main" by default, and Rust coders can change it.
 //!
 //! ## Spaces
-//! The spaces can consist of ' ' SPACE, '\\t' TAB, and the comment blocks "{* ... }".
+//! The spaces can consist of U+0020 SPACE, U+0009 TAB, and the comment blocks "{* ... }".
 //!
 //! The operators "=", ":=", "|", and "~" can be preceded by the spaces, and succeeded by spaces and one newline. (If it allowed multiple newlines, some syntax errors cause puzzling error messages.)
 //!
@@ -280,7 +305,7 @@
 //! ```
 //!
 //! # License
-//! TPhrase for Rust is licensed under MIT or Apache-2.0.
+//! TPhrase for Rust is licensed under either of [MIT](http://opensource.org/licenses/MIT) or [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0) at your option.
 //!
 //! Copyright © 2025 OOTA, Masato
 //!
@@ -299,49 +324,39 @@
 //! http://www.apache.org/licenses/LICENSE-2.0
 //!
 //! Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+//!
+//! # Contribution
+//!
+//! Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
+mod compile_error;
 mod fastrand_rng;
 mod generator;
 mod parser;
+mod random_number_generator;
 mod regex_substitutor;
+mod substitutor;
 mod utils;
 
-/// The random number generator used when selecting the text options in `Generator`.
-/// You can replace the default into your version. `Generator` cannot `clone()` if your instance of `RandomNumberGenerator` cannot `clone()`.
-pub trait RandomNumberGenerator {
-    /// Create a random number generator. Used in `Generator::new()`.
-    fn new() -> Self;
-    /// Create a random number in the range of [0.0, 1.0). Used in `Generator::generate()`.
-    fn next(self: &mut Self) -> f64;
-}
-
-/// The substitutor implementing the gsub function in tphrase.
-/// You can replace the default into your version. `Generator` cannot `clone()` if your instance of `Substitutor` cannot `clone()`.
-pub trait Substitutor {
-    /// Create a random number generator. Used in parsing.
-    fn new() -> Self;
-    /// Substitute str. Used in `Generator::generate()`.
-    fn gsub<'a>(self: &Self, s: &'a str) -> std::borrow::Cow<'a, str>;
-    /// Add an instruction of gsub function. Used in parsing.
-    ///
-    /// The string in `Err` is the error message to show users.
-    fn add(self: &mut Self, pattern: &str, repl: String, limit: usize) -> Result<(), String>;
-}
-
-pub use fastrand_rng::FastrandRNG;
+pub use compile_error::CompileError;
+pub use fastrand_rng::FastrandRng;
 pub use generator::Generator;
-pub use generator::SyntaxID;
+pub use generator::SyntaxId;
+pub use generator::SyntaxRemoveError;
 pub use parser::data::Syntax;
 pub use parser::parse;
 pub use parser::parse_str;
+pub use random_number_generator::RandomNumberGenerator;
 pub use regex_substitutor::RegexGsub;
+pub use substitutor::Substitutor;
+pub use substitutor::SubstitutorAddError;
 pub(crate) use utils::{select_and_generate_text, TextGenerator};
 pub use utils::{trunc_syntax, trunc_syntax_str};
 
-/// The default random number generator of `Generator`.
-pub type DefaultRandomNumberGenerator = FastrandRNG;
-/// The default substitutor of `Generator`.
-pub type DefaultSubstitutor = RegexGsub;
+/// The default random number generator of [`Generator`].
+pub type DefaultRng = FastrandRng;
+/// The default substitutor of [`Generator`].
+pub type DefaultSubst = RegexGsub;
 /// The type of the external context.
 pub type ExtContext = std::collections::HashMap<String, String>;
 
@@ -361,3 +376,7 @@ mod tests {
         assert_eq!(ph.generate(), "Hello, World!");
     }
 }
+
+#[doc = include_str!("../Readme.md")]
+#[cfg(doctest)]
+pub struct ReadmeDoctests;

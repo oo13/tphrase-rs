@@ -1,28 +1,48 @@
 //! Test for struct Generator
-//!
-//! Copyright © 2025 OOTA, Masato
-//!
-//! This file is part of TPhrase for Rust.
-//!
-//! Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-//!
-//! The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-//!
-//! THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//!
-//! OR
-//!
-//! Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
-//!
-//! http://www.apache.org/licenses/LICENSE-2.0
-//!
-//! Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+//
+// Copyright © 2025 OOTA, Masato
+//
+// This file is part of TPhrase for Rust.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// OR
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 extern crate tphrase;
 use tphrase::*;
 
 mod utils;
 use utils::*;
+
+#[test]
+fn test_struct_generator_new() {
+    let mut ph: Generator = Generator::new();
+
+    assert_eq!(ph.generate(), "nil");
+    assert_eq!(ph.combination_number(), 0);
+    assert_eq!(ph.weight(), 0.0);
+    assert_eq!(ph.number_of_syntax(), 0);
+}
+
+#[test]
+fn test_struct_generator_default() {
+    let mut ph: Generator = Default::default();
+
+    assert_eq!(ph.generate(), "nil");
+    assert_eq!(ph.combination_number(), 0);
+    assert_eq!(ph.weight(), 0.0);
+    assert_eq!(ph.number_of_syntax(), 0);
+}
 
 #[test]
 fn test_struct_generator_from_str() {
@@ -123,16 +143,6 @@ fn test_struct_generator_clone_and_equalize_chance() {
 }
 
 #[test]
-fn test_struct_generator_new() {
-    let mut ph: Generator = Generator::new();
-
-    assert_eq!(ph.generate(), "nil");
-    assert_eq!(ph.combination_number(), 0);
-    assert_eq!(ph.weight(), 0.0);
-    assert_eq!(ph.number_of_syntax(), 0);
-}
-
-#[test]
 fn test_struct_generator_generate() {
     let mut ph: Generator<ZeroNG> = r#"
         main = A | B | C
@@ -172,7 +182,7 @@ fn test_struct_generator_add() {
     "#
     .parse()
     .unwrap();
-    let id: SyntaxID = ph.add(syntax).unwrap();
+    let id: SyntaxId = ph.add(syntax).unwrap();
     assert_eq!(id, 2);
     assert_eq!(ph.generate(), "X");
     assert_eq!(ph.combination_number(), 14);
@@ -190,7 +200,7 @@ fn test_struct_generator_add_with_start_condition() {
     .unwrap();
 
     let mut ph: Generator = Generator::new();
-    let id: SyntaxID = ph.add_with_start_condition(syntax, "alt").unwrap();
+    let id: SyntaxId = ph.add_with_start_condition(syntax, "alt").unwrap();
     assert_eq!(id, 1);
     assert_eq!(ph.generate(), "ALT");
     assert_eq!(ph.combination_number(), 1);
@@ -219,7 +229,7 @@ fn test_struct_generator_add_and_error() {
     "#
     .parse()
     .unwrap();
-    let id2: SyntaxID = ph.add_with_start_condition(syntax2, "C").unwrap();
+    let id2: SyntaxId = ph.add_with_start_condition(syntax2, "C").unwrap();
     assert_eq!(id2, 2);
     assert_eq!(ph.generate(), "X");
     assert_eq!(ph.combination_number(), 10);
@@ -234,9 +244,9 @@ fn test_struct_generator_remove_first_phrase() {
     let syntax1: Syntax = r#"main = "1" 2 | 2 | 3"#.parse().unwrap();
     let syntax2: Syntax = r#"main = A | "B" 3 | C"#.parse().unwrap();
     let syntax3: Syntax = r#"main = あ | い | "う" 4"#.parse().unwrap();
-    let id1: SyntaxID = ph.add(syntax1).unwrap();
-    let id2: SyntaxID = ph.add(syntax2).unwrap();
-    let id3: SyntaxID = ph.add(syntax3).unwrap();
+    let id1: SyntaxId = ph.add(syntax1).unwrap();
+    let id2: SyntaxId = ph.add(syntax2).unwrap();
+    let id3: SyntaxId = ph.add(syntax3).unwrap();
     assert_eq!(id1, 1);
     assert_eq!(id2, 2);
     assert_eq!(id3, 3);
@@ -278,9 +288,9 @@ fn test_struct_generator_remove_last_phrase() {
     let syntax1: Syntax = r#"main = "1" 2 | 2 | 3"#.parse().unwrap();
     let syntax2: Syntax = r#"main = A | "B" 3 | C"#.parse().unwrap();
     let syntax3: Syntax = r#"main = あ | い | "う" 4"#.parse().unwrap();
-    let id1: SyntaxID = ph.add(syntax1).unwrap();
-    let id2: SyntaxID = ph.add(syntax2).unwrap();
-    let id3: SyntaxID = ph.add(syntax3).unwrap();
+    let id1: SyntaxId = ph.add(syntax1).unwrap();
+    let id2: SyntaxId = ph.add(syntax2).unwrap();
+    let id3: SyntaxId = ph.add(syntax3).unwrap();
     assert_eq!(id1, 1);
     assert_eq!(id2, 2);
     assert_eq!(id3, 3);
@@ -322,9 +332,9 @@ fn test_struct_generator_remove_middle_phrase() {
     let syntax1: Syntax = r#"main = "1" 2 | 2 | 3"#.parse().unwrap();
     let syntax2: Syntax = r#"main = A | "B" 3 | C"#.parse().unwrap();
     let syntax3: Syntax = r#"main = あ | い | "う" 4"#.parse().unwrap();
-    let id1: SyntaxID = ph.add(syntax1).unwrap();
-    let id2: SyntaxID = ph.add(syntax2).unwrap();
-    let id3: SyntaxID = ph.add(syntax3).unwrap();
+    let id1: SyntaxId = ph.add(syntax1).unwrap();
+    let id2: SyntaxId = ph.add(syntax2).unwrap();
+    let id3: SyntaxId = ph.add(syntax3).unwrap();
     assert_eq!(id1, 1);
     assert_eq!(id2, 2);
     assert_eq!(id3, 3);
@@ -366,9 +376,9 @@ fn test_struct_generator_remove_and_add_phrase() {
     let syntax1: Syntax = r#"main = 1"#.parse().unwrap();
     let syntax2: Syntax = r#"main = A | B"#.parse().unwrap();
     let syntax3: Syntax = r#"main = あ | い | う"#.parse().unwrap();
-    let id1: SyntaxID = ph.add(syntax1).unwrap();
-    let id2: SyntaxID = ph.add(syntax2).unwrap();
-    let id3: SyntaxID = ph.add(syntax3).unwrap();
+    let id1: SyntaxId = ph.add(syntax1).unwrap();
+    let id2: SyntaxId = ph.add(syntax2).unwrap();
+    let id3: SyntaxId = ph.add(syntax3).unwrap();
     assert_eq!(id1, 1);
     assert_eq!(id2, 2);
     assert_eq!(id3, 3);
@@ -387,7 +397,7 @@ fn test_struct_generator_remove_and_add_phrase() {
     assert_eq!(ph.number_of_syntax(), 2);
 
     let syntax4: Syntax = r#"main = 11 | 12 | 13 | 14"#.parse().unwrap();
-    let id4: SyntaxID = ph.add(syntax4).unwrap();
+    let id4: SyntaxId = ph.add(syntax4).unwrap();
     assert_eq!(id4, 4);
 
     assert_eq!(ph.generate(), "14");
@@ -404,7 +414,7 @@ fn test_struct_generator_remove_and_add_phrase() {
     assert_eq!(ph.number_of_syntax(), 2);
 
     let syntax5: Syntax = r#"main = AA | BB | CC | DD | EE"#.parse().unwrap();
-    let id5: SyntaxID = ph.add(syntax5).unwrap();
+    let id5: SyntaxId = ph.add(syntax5).unwrap();
     assert_eq!(id5, 4);
 
     assert_eq!(ph.generate(), "EE");

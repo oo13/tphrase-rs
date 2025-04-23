@@ -1,24 +1,25 @@
 //! Parsed data and Syntax
-//!
-//! Copyright © 2025 OOTA, Masato
-//!
-//! This file is part of TPhrase for Rust.
-//!
-//! Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-//!
-//! The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-//!
-//! THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//!
-//! OR
-//!
-//! Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
-//!
-//! http://www.apache.org/licenses/LICENSE-2.0
-//!
-//! Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+//
+// Copyright © 2025 OOTA, Masato
+//
+// This file is part of TPhrase for Rust.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// OR
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not use TPhrase for Rust except in compliance with the License. You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 use crate::select_and_generate_text;
+use crate::CompileError;
 use crate::ExtContext;
 use crate::RandomNumberGenerator;
 use crate::Substitutor;
@@ -30,17 +31,18 @@ use std::rc::Rc;
 type Assignments<S> = HashMap<String, Rc<RefCell<ProductionRule<S>>>>;
 
 /// A part of the text.
+#[derive(Debug)]
 enum Part<S: Substitutor> {
     /// The part is a literal text.
     Literal(String),
-    /// The part is an expansion. `Option` is `None` when the `Part` doesn't bind to a `Syntax`.
+    /// The part is an expansion. [`Option`] is [`None`] when the [`Part`] doesn't bind to a [`Syntax`].
     Expansion(String, Option<Rc<RefCell<ProductionRule<S>>>>),
     /// The part is an anonymous rule.
     AnonymousRule(Rc<RefCell<ProductionRule<S>>>),
 }
 impl<S: Substitutor> Clone for Part<S> {
     /// # Note
-    /// `clone()` has a side-effect that the `Part` unbinds the `Syntax`. `Syntax::clone()` handles it.
+    /// `clone()` has a side-effect that the [`Part`] unbinds the [`Syntax`]. [`Syntax::clone()`] handles it.
     fn clone(self: &Self) -> Self {
         match self {
             Part::Literal(s) => Part::Literal(s.clone()),
@@ -53,6 +55,7 @@ impl<S: Substitutor> Clone for Part<S> {
 }
 
 /// The data structure representing the text.
+#[derive(Debug)]
 pub(super) struct Text<S: Substitutor> {
     /// The parts of the text.
     parts: Vec<Part<S>>,
@@ -74,7 +77,11 @@ impl<S: Substitutor> Clone for Text<S> {
     }
 }
 impl<S: Substitutor> TextGenerator for Text<S> {
-    fn generate<R: RandomNumberGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
+    fn generate<R: RandomNumberGenerator>(
+        self: &Self,
+        ext_context: &ExtContext,
+        rng: &mut R,
+    ) -> String {
         let mut r = "".to_string();
         for p in self.parts.iter() {
             match p {
@@ -97,7 +104,7 @@ impl<S: Substitutor> TextGenerator for Text<S> {
     }
 }
 impl<S: Substitutor> Text<S> {
-    /// Create an empty text.
+    /// Create an empty [`Text`].
     pub(super) fn new() -> Self {
         Self {
             parts: Vec::new(),
@@ -134,10 +141,10 @@ impl<S: Substitutor> Text<S> {
     /// Set the weight of the text manually.
     ///
     /// # Parameter
-    /// - `w`: The weight. The default value is used if weight is `None`.
+    /// - `w`: The weight. The default value is used if weight is [`None`].
     ///
     /// # Note
-    /// It disable the automatic calculation of the weight if `w` is not `None`.
+    /// It disable the automatic calculation of the weight if `w` is not [`None`].
     pub(super) fn set_weight(self: &mut Self, w: Option<f64>) {
         if let Some(x) = w {
             self.weight = x;
@@ -150,11 +157,11 @@ impl<S: Substitutor> Text<S> {
     /// Bind the instance on a syntax.
     ///
     /// # Parameter
-    /// - `assingments`: The assignments in the `Syntax` to be bound on.
+    /// - `assingments`: The assignments in the [`Syntax`] to be bound on.
     /// - `epoch`: The current binding epoch.
     /// - `err_msg`: The error messages are added if some errors are detected.
     ///
-    /// # Error
+    /// # Errors
     /// An error message is added to `err_msg` if this instance detects a recursive expansion.
     fn bind_syntax(
         self: &mut Self,
@@ -215,7 +222,7 @@ impl<S: Substitutor> Text<S> {
     /// - `syntax`: The syntax to be fixed.
     /// - `err_msg`: The error messages are added if some errors are detected.
     ///
-    /// # Error
+    /// # Errors
     /// An error is caused if the local nonterminal that is referred by a production rule doesn't exists.
     fn fix_local_nonterminal(self: &mut Self, syntax: &Syntax<S>, err_msg: &mut Vec<String>) {
         for p in self.parts.iter_mut() {
@@ -240,7 +247,7 @@ impl<S: Substitutor> Text<S> {
     /// The weight.
     ///
     /// # Note
-    /// The return value is meaningless when the instance doesn't binds to a `Syntax`.
+    /// The return value is meaningless when the instance doesn't binds to a [`Syntax`].
     fn weight(self: &Self) -> f64 {
         self.weight
     }
@@ -255,6 +262,7 @@ impl<S: Substitutor> Text<S> {
 }
 
 /// The data structure representing the set of the text options.
+#[derive(Debug)]
 pub(super) struct TextOptions<S: Substitutor> {
     /// The set of the text options.
     texts: Vec<Text<S>>,
@@ -273,7 +281,11 @@ impl<S: Substitutor> Clone for TextOptions<S> {
     }
 }
 impl<S: Substitutor> TextGenerator for TextOptions<S> {
-    fn generate<R: RandomNumberGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
+    fn generate<R: RandomNumberGenerator>(
+        self: &Self,
+        ext_context: &ExtContext,
+        rng: &mut R,
+    ) -> String {
         select_and_generate_text(
             &self.texts,
             &self.weights,
@@ -284,7 +296,7 @@ impl<S: Substitutor> TextGenerator for TextOptions<S> {
     }
 }
 impl<S: Substitutor> TextOptions<S> {
-    /// Create an empty `Options`.
+    /// Create an empty [`TextOptions`].
     pub(super) fn new() -> Self {
         Self {
             texts: Vec::new(),
@@ -299,7 +311,7 @@ impl<S: Substitutor> TextOptions<S> {
     /// The weight.
     ///
     /// # Note
-    /// The return value is meaningless when the instance doesn't binds to a `Syntax`.
+    /// The return value is meaningless when the instance doesn't binds to a [`Syntax`].
     fn weight(self: &Self) -> f64 {
         if let Some(x) = self.weights.last() {
             *x
@@ -340,11 +352,11 @@ impl<S: Substitutor> TextOptions<S> {
     /// Bind the instance on a syntax.
     ///
     /// # Parameter
-    /// - `assingments`: The assignments in the `Syntax` to be bound on.
+    /// - `assingments`: The assignments in the [`Syntax`] to be bound on.
     /// - `epoch`: The current binding epoch.
     /// - `err_msg`: The error messages are added if some errors are detected.
     ///
-    /// # Error
+    /// # Errors
     /// An error message is added to `err_msg` if this instance detects a recursive expansion.
     fn bind_syntax(
         self: &mut Self,
@@ -366,7 +378,7 @@ impl<S: Substitutor> TextOptions<S> {
     /// - `syntax`: The syntax to be fixed.
     /// - `err_msg`: The error messages are added if some errors are detected.
     ///
-    /// # Error
+    /// # Errors
     /// An error is caused if the local nonterminal that is referred by a production rule doesn't exists.
     fn fix_local_nonterminal(self: &mut Self, syntax: &mut Syntax<S>, err_msg: &mut Vec<String>) {
         for t in self.texts.iter_mut() {
@@ -376,6 +388,7 @@ impl<S: Substitutor> TextOptions<S> {
 }
 
 /// The data structure representing the production rule.
+#[derive(Debug)]
 pub(super) struct ProductionRule<S: Substitutor> {
     /// The options in the production rule.
     options: TextOptions<S>,
@@ -397,14 +410,18 @@ impl<S: Substitutor> Clone for ProductionRule<S> {
     }
 }
 impl<S: Substitutor> TextGenerator for ProductionRule<S> {
-    fn generate<R: RandomNumberGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
+    fn generate<R: RandomNumberGenerator>(
+        self: &Self,
+        ext_context: &ExtContext,
+        rng: &mut R,
+    ) -> String {
         self.gsubs
             .gsub(&self.options.generate(ext_context, rng))
             .to_string()
     }
 }
 impl<S: Substitutor> ProductionRule<S> {
-    /// Create an empty `ProductionRule`.
+    /// Create an empty [`ProductionRule`].
     pub(super) fn new(options: TextOptions<S>, gsubs: S) -> Self {
         Self {
             options,
@@ -420,7 +437,7 @@ impl<S: Substitutor> ProductionRule<S> {
     /// The weight.
     ///
     /// # Note
-    /// The return value is meaningless when the instance doesn't binds to a `Syntax`.
+    /// The return value is meaningless when the instance doesn't binds to a [`Syntax`].
     fn weight(self: &Self) -> f64 {
         match self.weight {
             None => self.options.weight(),
@@ -439,7 +456,7 @@ impl<S: Substitutor> ProductionRule<S> {
     /// Set the weight of the production rule.
     ///
     /// # Parameter
-    /// - `weight`: The weight of the production rule. The default value is used if `weight` is `None`. The default weight is the value propagated from the `TextOptions`.
+    /// - `weight`: The weight of the production rule. The default value is used if `weight` is [`None`]. The default weight is the value propagated from the [`TextOptions`].
     pub(super) fn set_weight(self: &mut Self, weight: Option<f64>) {
         self.weight = weight;
     }
@@ -455,11 +472,11 @@ impl<S: Substitutor> ProductionRule<S> {
     /// Bind the instance on a syntax.
     ///
     /// # Parameter
-    /// - `assingments`: The assignments in the `Syntax` to be bound on.
+    /// - `assingments`: The assignments in the [`Syntax`] to be bound on.
     /// - `epoch`: The current binding epoch.
     /// - `err_msg`: The error messages are added if some errors are detected.
     ///
-    /// # Error
+    /// # Errors
     /// An error message is added to `err_msg` if this instance detects a recursive expansion.
     fn bind_syntax(
         self: &mut Self,
@@ -483,7 +500,7 @@ impl<S: Substitutor> ProductionRule<S> {
     /// - `syntax`: The syntax to be fixed.
     /// - `err_msg`: The error messages are added if some errors are detected.
     ///
-    /// # Error
+    /// # Errors
     /// An error is caused if the local nonterminal that is referred by a production rule doesn't exists.
     fn fix_local_nonterminal(self: &mut Self, syntax: &mut Syntax<S>, err_msg: &mut Vec<String>) {
         self.options.fix_local_nonterminal(syntax, err_msg);
@@ -497,51 +514,75 @@ impl<S: Substitutor> ProductionRule<S> {
 
 /// The data structure representing (a part of) the phrase syntax.
 ///
-/// Add some phrase syntaxes to a `Syntax`, and add it to a `Generator` to use.
+/// Add some phrase syntaxes to a [`Syntax`], and add it to a [`Generator`] to use.
 ///
 /// # Example
-/// `parse()` and `parse_str()` can create a `Syntax`.
+/// [`parse()`] and [`parse_str()`] can create a [`Syntax`].
 /// ```rust
-/// let syntax = tphrase::parse_str(r#"main = Hello, World!"#).unwrap();
+/// # use std::error::Error;
+/// # fn main() -> Result<(), tphrase::CompileError> {
+/// let syntax = tphrase::parse_str(r#"main = Hello, World!"#)?;
 /// let mut ph: tphrase::Generator = tphrase::Generator::new();
 /// let _ = ph.add(syntax);
 /// assert_eq!(ph.generate(), "Hello, World!");
+/// # Ok(())
+/// # }
 /// ```
 ///
 /// You can easily create from a string to a phrase syntax.
 /// ```rust
-/// let syntax: tphrase::Syntax = "main = How are you?".parse().unwrap();
+/// # use std::error::Error;
+/// # fn main() -> Result<(), tphrase::CompileError> {
+/// let syntax: tphrase::Syntax = "main = How are you?".parse()?;
 /// let mut ph: tphrase::Generator = tphrase::Generator::new();
 /// let _ = ph.add(syntax);
 /// assert_eq!(ph.generate(), "How are you?");
+/// # Ok(())
+/// # }
 /// ```
 ///
-/// You can add a part of a phrase syntax to a `Syntax`.
+/// You can add a part of a phrase syntax to a [`Syntax`].
 /// ```rust
-/// let hello: tphrase::Syntax = "HELLO = Hello".parse().unwrap();
-/// let world: tphrase::Syntax = "WORLD = World".parse().unwrap();
-/// let mut syntax: tphrase::Syntax = "main = {HELLO}, {WORLD}!".parse().unwrap();
-/// syntax.add(hello).unwrap();
-/// syntax.add(world).unwrap();
+/// # use std::error::Error;
+/// # fn main() -> Result<(), tphrase::CompileError> {
+/// let hello: tphrase::Syntax = "HELLO = Hello".parse()?;
+/// let world: tphrase::Syntax = "WORLD = World".parse()?;
+/// let mut syntax: tphrase::Syntax = "main = {HELLO}, {WORLD}!".parse()?;
+/// syntax.add(hello)?;
+/// syntax.add(world)?;
 /// let mut ph: tphrase::Generator = tphrase::Generator::new();
 /// let _ = ph.add(syntax);
 /// assert_eq!(ph.generate(), "Hello, World!");
+/// # Ok(())
+/// # }
 /// ```
 ///
-/// `Err` in the result holds some human readable error messages.
+/// [`Err`] in the result holds some human readable error messages.
 /// ```rust
 /// let syntax_result: Result<tphrase::Syntax, _> = r#"
 ///     main = "Hello, " {WORLD}
 ///     WORLD
 ///       = world
 /// "#.parse();
-/// let err_msgs = syntax_result.err().unwrap();
-/// assert_eq!(err_msgs.len(), 3);
-/// assert_eq!(err_msgs[0], "Line#2, Column#22: The end of the text or \"\\n\" is expected.");
-/// assert_eq!(err_msgs[1], "Line#3, Column#10: \"=\" or \":=\" is expected.");
-/// assert_eq!(err_msgs[2], "Line#4, Column#7: A nonterminal \"[A-Za-z0-9_.]+\" is expected.");
+/// match syntax_result {
+///     Ok(_) => assert!(syntax_result.is_err()),
+///     Err(err) => {
+///         assert_eq!(err.error_messages().len(), 3);
+///         assert_eq!(
+///             err.to_string(),
+///             format!("{}{}{}{}",
+///                 "compile error:\n",
+///                 "Line#2, Column#22: The end of the text or \"\\n\" is expected.\n",
+///                 "Line#3, Column#10: \"=\" or \":=\" is expected.\n",
+///                 "Line#4, Column#7: A nonterminal \"[A-Za-z0-9_.]+\" is expected."));
+///     },
+/// }
 /// ```
-pub struct Syntax<S: Substitutor = crate::DefaultSubstitutor> {
+/// [`Generator`]: ../../struct.Generator.html
+/// [`parse()`]: ../../fn.parse.html
+/// [`parse_str()`]: ../../fn.parse_str.html
+#[derive(Debug)]
+pub struct Syntax<S: Substitutor = crate::DefaultSubst> {
     /// The assignments in the syntax.
     assignments: Assignments<S>,
     /// The reference to the start condition.
@@ -569,8 +610,17 @@ impl<S: Substitutor> Clone for Syntax<S> {
         return a;
     }
 }
+impl<S: Substitutor> Default for Syntax<S> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl<S: Substitutor> TextGenerator for Syntax<S> {
-    fn generate<R: RandomNumberGenerator>(self: &Self, ext_context: &ExtContext, rng: &mut R) -> String {
+    fn generate<R: RandomNumberGenerator>(
+        self: &Self,
+        ext_context: &ExtContext,
+        rng: &mut R,
+    ) -> String {
         if self.is_generatable() {
             self.start_rule
                 .as_ref()
@@ -583,8 +633,10 @@ impl<S: Substitutor> TextGenerator for Syntax<S> {
     }
 }
 impl<S: Substitutor> std::str::FromStr for Syntax<S> {
-    type Err = Vec<String>;
-    /// `from_str(s)` is equivalent to `parse_str(s)`.
+    type Err = CompileError;
+    /// `from_str(s)` is equivalent to [`parse_str(s)`].
+    ///
+    /// [`parse_str(s)`]: ../../fn.parse_str.html
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         super::parse_str(s)
     }
@@ -606,7 +658,9 @@ impl<S: Substitutor> Syntax<S> {
     /// The sum of the weight.
     ///
     /// # Note
-    /// The return value is meaningless if `is_generatable()` is `false`. (The return type isn't `Option` because the function isn't public for the crate user.)
+    /// The return value is meaningless if [`is_generatable()`] is `false`. (The return type isn't [`Option`] because the function isn't public for the crate user.)
+    ///
+    /// [`is_generatable()`]: #method.is_generatable
     pub(crate) fn weight(self: &Self) -> f64 {
         if self.is_generatable() {
             self.start_rule.as_ref().unwrap().borrow().weight()
@@ -621,7 +675,9 @@ impl<S: Substitutor> Syntax<S> {
     /// The the number of the possible texts generated by the instance.
     ///
     /// # Note
-    /// The return value is meaningless if `is_generatable()` is `false`. (The return type isn't `Option` because the function isn't public for the crate user.)
+    /// The return value is meaningless if [`is_generatable()`] is `false`. (The return type isn't [`Option`] because the function isn't public for the crate user.)
+    ///
+    /// [`is_generatable()`]: #method.is_generatable
     pub(crate) fn combination_number(self: &Self) -> usize {
         if self.is_generatable() {
             self.start_rule
@@ -674,10 +730,10 @@ impl<S: Substitutor> Syntax<S> {
     /// - `rule`: The production rule to be assigned to the nonterminal.
     ///
     /// # Return
-    /// `Ok` if no errors are detected. `Err` has the human readable error message.
+    /// [`Ok`] if no errors are detected. [`Err`] has the human readable error message.
     /// # Note
     /// - It has a side effect to make the instance the unbound state (although the object that was bound on `self` remains bound on it).
-    /// - If `self` already contains nonterminal, then (1) the nonterminal and the rule don't add to `self`, (2) `Err` is returned.
+    /// - If `self` already contains nonterminal, then (1) the nonterminal and the rule don't add to `self`, (2) [`Err`] is returned.
     pub(super) fn add_production_rule(
         self: &mut Self,
         nonterminal: &str,
@@ -703,12 +759,12 @@ impl<S: Substitutor> Syntax<S> {
     /// - `syntax`: The syntax with the assignments to be added.
     ///
     /// # Return
-    /// `Ok` if no errors are detected. `Err` has the human readable error message.
+    /// [`Ok`] if no errors are detected. [`Err`] has the human readable error message.
     ///
     /// # Note
-    /// - If syntax has the nonterminal that this already contains, then: (1) the nonterminal in syntax OVERWRITES it, (2) `Err` is returned.
-    /// - It has a side effect to make the instance the unbound state (although the crate user has no occasion to use the bound `Syntax` directly.)
-    pub fn add(self: &mut Self, mut syntax: Syntax<S>) -> Result<(), Vec<String>> {
+    /// - If syntax has the nonterminal that this already contains, then: (1) the nonterminal in syntax OVERWRITES it, (2) [`Err`] is returned.
+    /// - It has a side effect to make the instance the unbound state (although the crate user has no occasion to use the bound [`Syntax`] directly.)
+    pub fn add(self: &mut Self, mut syntax: Syntax<S>) -> Result<(), CompileError> {
         self.disable_generating();
         let mut err_msg = Vec::new();
         for (k, v) in syntax.assignments.drain() {
@@ -723,7 +779,9 @@ impl<S: Substitutor> Syntax<S> {
         if err_msg.is_empty() {
             return Ok(());
         } else {
-            return Err(err_msg);
+            let mut compile_error = CompileError::new();
+            compile_error.add_error_messages(err_msg);
+            return Err(compile_error);
         }
     }
 
@@ -739,21 +797,21 @@ impl<S: Substitutor> Syntax<S> {
     /// - `start_condition`: The nonterminal where is the start condition.
     ///
     /// # Return
-    /// `Ok` if no errors are detected. `Err` has the human readable error messages.
+    /// [`Ok`] if no errors are detected. [`Err`] has the human readable error messages.
     ///
     /// # Note
     /// - Only the nonterminals that are directly or indirectly referred by the start condition are tried binding.
     /// - An error is caused if the recursive reference to a nonterminal exists.
     /// - An error is cause if the nonterminal start_condition doesn't exist.
-    pub(crate) fn bind_syntax(self: &mut Self, start_condition: &str) -> Result<(), Vec<String>> {
+    pub(crate) fn bind_syntax(self: &mut Self, start_condition: &str) -> Result<(), CompileError> {
         self.disable_generating();
-        let mut err_msg = Vec::new();
         if self.assignments.get(start_condition).is_none() {
             let mut err = "The nonterminal \"".to_string();
             err += start_condition;
             err += "\" doesn't exist.";
-            err_msg.push(err);
-            return Err(err_msg);
+            let mut compile_error = CompileError::new();
+            compile_error.add_error_message(err);
+            return Err(compile_error);
         }
 
         self.binding_epoch += 1;
@@ -765,19 +823,21 @@ impl<S: Substitutor> Syntax<S> {
             self.binding_epoch = 1;
         }
 
+        let mut err_msg = Vec::new();
         let start_rule = Rc::clone(self.assignments.get(start_condition).as_ref().unwrap());
         start_rule.borrow_mut().bind_syntax(
             &mut self.assignments,
             self.binding_epoch,
             &mut err_msg,
         );
-        let is_bound = err_msg.len() == 0;
-        if is_bound {
+        if err_msg.is_empty() {
             self.start_rule = Some(start_rule);
             self.start_condition = start_condition.to_string();
             return Ok(());
         } else {
-            return Err(err_msg);
+            let mut compile_error = CompileError::new();
+            compile_error.add_error_messages(err_msg);
+            return Err(compile_error);
         }
     }
 
@@ -786,7 +846,7 @@ impl<S: Substitutor> Syntax<S> {
     /// # Parameter
     /// - `err_msg`: The error messages are added if some errors are detected.
     ///
-    /// # Error
+    /// # Errors
     /// An error is caused if the local nonterminal that is referred by a production rule doesn't exists.
     pub(super) fn fix_local_nonterminal(self: &mut Self, err_msg: &mut Vec<String>) {
         let mut rc_v: Vec<Rc<RefCell<ProductionRule<S>>>> = Vec::new();
