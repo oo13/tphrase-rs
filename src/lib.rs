@@ -394,6 +394,6 @@ mod tests {
     }
 }
 
-#[doc = include_str!("../Readme.md")]
+#[doc = include_str!("../README.md")]
 #[cfg(doctest)]
 pub struct ReadmeDoctests;
