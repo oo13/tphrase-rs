@@ -6,6 +6,7 @@ description = "A translatable phrase generator."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/oo13/tphrase-rs.git"
 categories = ["internationalization", "text-processing"]
+readme = "README.md"
 
 [features]
 default = [ "fastrand", "regex" ]
