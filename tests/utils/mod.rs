@@ -20,6 +20,8 @@
 
 use tphrase::*;
 
+// Random number generators to test a phrase generation.
+
 #[derive(Clone, Debug)]
 pub struct ZeroNG {}
 impl RandomNumberGenerator for ZeroNG {
@@ -97,12 +99,14 @@ pub type LinearNG3 = LinearNG<LinearNGParam3>;
 #[allow(dead_code)]
 pub type LinearNG6 = LinearNG<LinearNGParam6>;
 
+// function to check a distribution.
+
 #[allow(dead_code)]
 pub type TextDistribution = std::collections::HashMap<String, f64>;
 
 #[allow(dead_code)]
-pub fn check_distribution(
-    ph: &mut Generator,
+pub fn check_distribution<R: RandomNumberGenerator, S: Substitutor>(
+    ph: &mut Generator<R, S>,
     num: usize,
     dist: &TextDistribution,
     allowance: f64,
@@ -134,4 +138,53 @@ pub fn check_distribution(
         }
     }
     return is_match;
+}
+
+// Alternative RNG
+pub struct PosixRng {
+    n: u64,
+}
+impl RandomNumberGenerator for PosixRng {
+    fn new() -> Self {
+        Self { n: 1 }
+    }
+    fn next(self: &mut Self) -> f64 {
+        self.n = self.n * 1103515245 + 12345;
+        self.n &= 0xFFFF_FFFF;
+        return ((self.n / 65536 % 32768) as f64) / 32768.0;
+    }
+}
+
+// Alternative Substitutor
+pub struct PlainSubst {
+    replaces: Vec<(String, String)>,
+}
+impl Substitutor for PlainSubst {
+    fn new() -> Self {
+        Self {
+            replaces: Vec::new(),
+        }
+    }
+    fn gsub<'a>(self: &Self, s: &'a str) -> std::borrow::Cow<'a, str> {
+        let mut r = std::borrow::Cow::Borrowed(s);
+        for repl in self.replaces.iter() {
+            r = r.replace(&repl.0, &repl.1).into();
+        }
+        return r;
+    }
+    fn add(
+        self: &mut Self,
+        pattern: &str,
+        repl: String,
+        limit: usize,
+    ) -> Result<(), SubstitutorAddError> {
+        if limit == 0 {
+            self.replaces.push((pattern.to_string(), repl));
+            Ok(())
+        } else {
+            Err(SubstitutorAddError::new(
+                "limit must be 0 or g.".to_string(),
+            ))
+        }
+    }
 }

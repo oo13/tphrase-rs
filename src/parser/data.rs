@@ -582,7 +582,10 @@ impl<S: Substitutor> ProductionRule<S> {
 /// [`parse()`]: ../../fn.parse.html
 /// [`parse_str()`]: ../../fn.parse_str.html
 #[derive(Debug)]
-pub struct Syntax<S: Substitutor = crate::DefaultSubst> {
+pub struct Syntax<
+    #[cfg(feature = "regex")] S: Substitutor = crate::DefaultSubst,
+    #[cfg(not(feature = "regex"))] S: Substitutor,
+> {
     /// The assignments in the syntax.
     assignments: Assignments<S>,
     /// The reference to the start condition.

@@ -304,6 +304,17 @@
 //! gsub_limit = "g" | { ? [0-9] ? } ;
 //! ```
 //!
+//! # Features
+//! TPhrase has two features:
+//! - "fastrand": define [`FastrandRng`] and [`DefaultRng`]
+//! - "regex": define [`RegexGsub`] and [`DefaultSubst`]
+//!
+//! They are enalbed by default.
+//!
+//! Disabling the features, the default generic types of [`Generator`] is removed. 1st default generic type needs "fastrand" and "regex", 2nd needs "regex".
+//!
+//! The tests and examples support only the default features.
+//!
 //! # License
 //! TPhrase for Rust is licensed under either of [MIT](http://opensource.org/licenses/MIT) or [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0) at your option.
 //!
@@ -330,15 +341,18 @@
 //! Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
 mod compile_error;
+#[cfg(feature = "fastrand")]
 mod fastrand_rng;
 mod generator;
 mod parser;
 mod random_number_generator;
+#[cfg(feature = "regex")]
 mod regex_substitutor;
 mod substitutor;
 mod utils;
 
 pub use compile_error::CompileError;
+#[cfg(feature = "fastrand")]
 pub use fastrand_rng::FastrandRng;
 pub use generator::Generator;
 pub use generator::SyntaxId;
@@ -347,6 +361,7 @@ pub use parser::data::Syntax;
 pub use parser::parse;
 pub use parser::parse_str;
 pub use random_number_generator::RandomNumberGenerator;
+#[cfg(feature = "regex")]
 pub use regex_substitutor::RegexGsub;
 pub use substitutor::Substitutor;
 pub use substitutor::SubstitutorAddError;
@@ -354,8 +369,10 @@ pub(crate) use utils::{select_and_generate_text, TextGenerator};
 pub use utils::{trunc_syntax, trunc_syntax_str};
 
 /// The default random number generator of [`Generator`].
+#[cfg(feature = "fastrand")]
 pub type DefaultRng = FastrandRng;
 /// The default substitutor of [`Generator`].
+#[cfg(feature = "regex")]
 pub type DefaultSubst = RegexGsub;
 /// The type of the external context.
 pub type ExtContext = std::collections::HashMap<String, String>;

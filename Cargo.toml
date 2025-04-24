@@ -7,6 +7,9 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/oo13/tphrase-rs.git"
 categories = ["internationalization", "text-processing"]
 
+[features]
+default = [ "fastrand", "regex" ]
+
 [dependencies]
-regex = "1.11.1"
-fastrand = "2.3.0"
+fastrand = { version = "2.3.0", optional = true }
+regex = { version = "1.11.1", optional = true }

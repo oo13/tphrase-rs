@@ -456,3 +456,47 @@ fn test_struct_generator_clear() {
     assert_eq!(ph.weight(), 5.0);
     assert_eq!(ph.number_of_syntax(), 1);
 }
+
+#[test]
+fn test_struct_generator_alternaitve_rng_and_subst() {
+    let mut ph: Generator<PosixRng, PlainSubst> = r#"
+        main = {= X | Y | Z } | {A} | {B}
+
+        A = A[1] | A[2] | A[3] ~ /[1]/[0]/g
+
+        B = B1 | B2 | B3
+    "#
+    .parse()
+    .unwrap();
+    let syntax: Syntax<PlainSubst> = r#"
+        main = {= V | W } | {C} ~ /C/D/g
+
+        C = C1 | C2 | C3
+    "#
+    .parse()
+    .unwrap();
+    ph.add(syntax).unwrap();
+
+    let dist = TextDistribution::from([
+        ("X".to_string(), 1.0 / 14.0),
+        ("Y".to_string(), 1.0 / 14.0),
+        ("Z".to_string(), 1.0 / 14.0),
+        ("A[0]".to_string(), 1.0 / 14.0),
+        ("A[2]".to_string(), 1.0 / 14.0),
+        ("A[3]".to_string(), 1.0 / 14.0),
+        ("B1".to_string(), 1.0 / 14.0),
+        ("B2".to_string(), 1.0 / 14.0),
+        ("B3".to_string(), 1.0 / 14.0),
+        ("V".to_string(), 1.0 / 14.0),
+        ("W".to_string(), 1.0 / 14.0),
+        ("D1".to_string(), 1.0 / 14.0),
+        ("D2".to_string(), 1.0 / 14.0),
+        ("D3".to_string(), 1.0 / 14.0),
+    ]);
+
+    assert!(check_distribution(&mut ph, 100000, &dist, 0.01));
+
+    assert_eq!(ph.combination_number(), 14);
+    assert_eq!(ph.weight(), 14.0);
+    assert_eq!(ph.number_of_syntax(), 2);
+}

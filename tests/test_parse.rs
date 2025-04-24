@@ -400,14 +400,14 @@ fn test_parse_gsub_with_too_big_number() {
 
 #[test]
 fn test_parse_gsub_with_error_and_report() {
-    let ph: Result<Generator, _> = r#"
-        main = 1 | 2 | 3 ~ /[1/2/
+    let ph: Result<Generator<ZeroNG, PlainSubst>, _> = r#"
+        main = 1 | 2 | 3 ~ /1/2/3
     "#
     .parse();
     assert!(ph.is_err());
     let err = ph.err().unwrap();
     assert_eq!(err.error_messages().len(), 1);
-    assert!(err.error_messages()[0].contains("Gsub error:"));
+    assert!(err.error_messages()[0].contains("Gsub error: limit must be 0 or g."));
 }
 
 #[test]

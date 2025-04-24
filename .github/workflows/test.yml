@@ -2,11 +2,13 @@ name: unit_test
 on:
   push:
     paths:
+      - '.github/workflows/*'
       - 'Cargo.toml'
       - 'src/**.rs'
       - 'test/**.rs'
   pull_request:
     paths:
+      - '.github/workflows/*'
       - 'Cargo.toml'
       - 'src/**.rs'
       - 'test/**.rs'
@@ -18,11 +20,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        features: [default, fastrand, regex, 'none']
         BUILD_TARGET: [dev, release]
+    env:
+      FEATURE_OPTION: ${{ matrix.features != 'none' && '-F' || '' }}
+      FEATURE_NAME: ${{ matrix.features != 'none' && matrix.features || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
-        run: cargo build --profile ${{ matrix.BUILD_TARGET }}
+        run: cargo build --profile ${{ matrix.BUILD_TARGET }} --no-default-features ${{ env.FEATURE_OPTION }} ${{ env.FEATURE_NAME }}
       - name: Test
+        if: ${{ matrix.features == 'default' }}
         run: cargo test --profile ${{ matrix.BUILD_TARGET }}

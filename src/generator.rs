@@ -88,8 +88,10 @@ pub type SyntaxId = usize;
 /// [`from_str()`]: #method.from_str
 #[derive(Clone, Debug)]
 pub struct Generator<
-    R: RandomNumberGenerator = crate::DefaultRng,
-    S: Substitutor = crate::DefaultSubst,
+    #[cfg(all(feature = "fastrand", feature = "regex"))] R: RandomNumberGenerator = crate::DefaultRng,
+    #[cfg(not(all(feature = "fastrand", feature = "regex")))] R: RandomNumberGenerator,
+    #[cfg(feature = "regex")] S: Substitutor = crate::DefaultSubst,
+    #[cfg(not(feature = "regex"))] S: Substitutor,
 > {
     /// The syntaxes in the instance.
     syntaxes: Vec<Syntax<S>>,
