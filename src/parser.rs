@@ -422,17 +422,6 @@ fn parse_nonterminal<I: Iterator<Item = char>>(it: &mut CharFeeder<I>) -> ParseR
     return Ok(nonterminal);
 }
 
-/// Is it a character of the decimal number?
-///
-/// # Parameter
-/// - `c`: The character to be tested.
-///
-/// # Return
-/// `true` if it's a decimal number.
-fn is_decimal_number_char(c: char) -> bool {
-    '0' <= c && c <= '9'
-}
-
 /// Parse a weight number.
 ///
 /// # Parameter
@@ -451,7 +440,7 @@ fn parse_weight<I: Iterator<Item = char>>(it: &mut CharFeeder<I>) -> ParseResult
     if c == '.' {
         it.next();
         c = it.c();
-        if is_decimal_number_char(c) {
+        if c.is_ascii_digit() {
             s.push('.');
             s.push(c);
             it.next();
@@ -459,12 +448,12 @@ fn parse_weight<I: Iterator<Item = char>>(it: &mut CharFeeder<I>) -> ParseResult
         } else {
             return parse_error(&it, "A number is expected. (\".\" is not a number.)");
         }
-    } else if is_decimal_number_char(c) {
+    } else if c.is_ascii_digit() {
         while {
             s.push(c);
             it.next();
             c = it.c();
-            is_decimal_number_char(c)
+            c.is_ascii_digit()
         } {}
         if c == '.' {
             s.push(c);
@@ -474,7 +463,7 @@ fn parse_weight<I: Iterator<Item = char>>(it: &mut CharFeeder<I>) -> ParseResult
     } else {
         return Ok(None);
     }
-    while is_decimal_number_char(c) {
+    while c.is_ascii_digit() {
         s.push(c);
         it.next();
         c = it.c();
@@ -852,7 +841,7 @@ fn parse_gsub_limit<I: Iterator<Item = char>>(it: &mut CharFeeder<I>) -> ParseRe
         return Ok(0); // 0 means no limit.
     } else {
         let mut s = String::new();
-        while is_decimal_number_char(c) {
+        while c.is_ascii_digit() {
             s.push(c);
             it.next();
             c = it.c();
